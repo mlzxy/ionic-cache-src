@@ -79,7 +79,7 @@
                         scope.onProgress(scope.progress);
                         if (scope.progress == 100) {
                             element.css('display', display);
-                            element[0][config.src || 'src'] = attrs.cacheSrc;
+                            element[0][config.srcIs || 'src'] = attrs.cacheSrc;
                             progress_circle.remove();
                             $interval.cancel(promise);
                             scope.onFinish(attrs.cacheSrc);
@@ -94,7 +94,7 @@
         var getCacheDir = function(plt) {
             switch (plt) {
                 case 'iOS':
-                    return window.cordova.file.documentsDirectory;                    
+                return window.cordova.file.externalDataDirectory;                    
                 case 'Android':
                     return window.cordova.file.externalDataDirectory;                    
             }
@@ -126,7 +126,7 @@
                     //**********//
                     var cache = $localStorage.cache_src = $localStorage.cache_src || {};
                     var finish = function(result) {
-                        element[0][config.src || 'src'] = result;
+                        element[0][config.srcIs || 'src'] = result;
                         element.css('display', display);
                         scope.onFinish(result);
                         progress_circle.remove();
