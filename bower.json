@@ -1,0 +1,32 @@
+{
+  "name": "cacheSrc",
+  "version": "0.1.0",
+  "authors": [
+    "Xinyu Zhang <beviszhang1993@gmail.com>"
+  ],
+  "description": "A Cache Ionic Plugin, works for any tags, and will show a progress circle when the download is not done",
+  "main": "cacheSrc.js",
+  "keywords": [
+    "ionic",
+    "cache",
+    "image",
+    "video",
+    "cordova-file-transfer",
+    "localstorage"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.4.3",
+    "ngCordova": "~0.1.17-alpha",
+    "ngStorage": "~0.3.0",
+    "angular-svg-round-progressbar": "~0.2.10",
+    "ionic": "~1.0.1"
+  }
+}
