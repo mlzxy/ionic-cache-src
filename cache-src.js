@@ -1,5 +1,5 @@
 (function() {
-    var module = angular.module('cacheSrc', [
+    var module = angular.module('ionic-cache-src', [
         'angular-svg-round-progress',
         'ngCordova',
         'ngStorage'

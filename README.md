@@ -1,4 +1,4 @@
-# CacheSrc
+# ionic-cache-src
 
 ```shell
 bower install 
