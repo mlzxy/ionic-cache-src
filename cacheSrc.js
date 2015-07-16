@@ -90,6 +90,17 @@
         };
     } else {
         // real device
+
+        var getCacheDir = function(plt) {
+            switch (plt) {
+                case 'iOS':
+                    return window.cordova.file.documentsDirectory;                    
+                case 'Android':
+                    return window.cordova.file.externalDataDirectory;                    
+            }
+        };
+
+
         cacheSrc = function($ionicPlatform, $timeout, $compile, $cacheSrc, $cordovaFileTransfer, $localStorage) {
             return {
                 restrict: 'A',
@@ -111,7 +122,7 @@
                     scope.onError = scope.onError || function() {};
                     element
                         .after(progress_circle);
-                    var ext = '.' + attrs.cacheSrc.split('.').pop();                    
+                    var ext = '.' + attrs.cacheSrc.split('.').pop();
                     //**********//
                     var cache = $localStorage.cache_src = $localStorage.cache_src || {};
                     var finish = function(result) {
@@ -121,21 +132,19 @@
                         progress_circle.remove();
                     };
 
-                    if (cache[attrs.cacheSrc]) {
+                    if (cache[attrs.cacheSrc]) {                        
                         finish(cache[attrs.cacheSrc]);
                     } else {
                         $ionicPlatform.ready(function() {
-                            alert(window.cordova.file.documentsDirectory + id() + ext);
-                            $cordovaFileTransfer.download(attrs.cacheSrc, window.cordova.file.documentsDirectory + id() + ext, {}, true)
-                                .then(function(result) {
-                                    debugger;                                    
+                            $cordovaFileTransfer.download(attrs.cacheSrc, getCacheDir(device.platform) + id() + ext, {}, true)
+                                .then(function(result) {                                    
                                     console.dir(result);
                                     cache[attrs.cacheSrc] = result.nativeURL;
                                     finish(result.nativeURL);
-                                }, function(err) {                                    
-                                    console.dir(err);                                    
+                                }, function(err) {
+                                    console.dir(err);
                                     scope.onError(err);
-                                }, function(progress) {                                                                  
+                                }, function(progress) {
                                     scope.onProgress((progress.loaded / progress.total) * 100);
                                 });
                         });
