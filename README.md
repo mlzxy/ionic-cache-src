@@ -82,27 +82,39 @@ function onFinish(naiveUrl){}
 function onProgress(number){}
 ```
 
+
+### inbroswer
+
+It will works in browser
+
+```js
+if(!window.cordova){
+   //skip the checking
+   // and use $interval to mock a progress circle download
+}
+```
+
 ### config
 
 ```js
 module.config(function($cacheSrcProvider){
-   $cacheSrcProvider.set('key',value); // set option
+    $cacheSrcProvider
+              .set('key',value)
+              .set({key:value}); // set option
+
 })
 
 ```
 Key, Value for options like
 
 - `srcIs`
-- `onError`
+- `onError` etc...
+- `interval` browser mock progress circle period, by default 200.
 - options for progress circle
-- etc..
 
 
 
 
-### inbroswer
-
-it will works in browser (simply skip the caching)
 
 
 

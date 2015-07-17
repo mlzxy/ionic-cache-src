@@ -94,9 +94,9 @@
         var getCacheDir = function(plt) {
             switch (plt) {
                 case 'iOS':
-                return window.cordova.file.externalDataDirectory;                    
+                    return window.cordova.file.externalDataDirectory;
                 case 'Android':
-                    return window.cordova.file.externalDataDirectory;                    
+                    return window.cordova.file.externalDataDirectory;
             }
         };
 
@@ -132,12 +132,12 @@
                         progress_circle.remove();
                     };
 
-                    if (cache[attrs.cacheSrc]) {                        
+                    if (cache[attrs.cacheSrc]) {
                         finish(cache[attrs.cacheSrc]);
                     } else {
                         $ionicPlatform.ready(function() {
                             $cordovaFileTransfer.download(attrs.cacheSrc, getCacheDir(device.platform) + id() + ext, {}, true)
-                                .then(function(result) {                                    
+                                .then(function(result) {
                                     console.dir(result);
                                     cache[attrs.cacheSrc] = result.nativeURL;
                                     finish(result.nativeURL);
@@ -157,8 +157,14 @@
 
     module.provider('$cacheSrc', function() {
         this.config = default_config;
-        this.set = function(obj) {
-            angular.extend(this.config, obj);
+        this.set = function(obj, val) {
+            var t = typeof obj;
+            if (t == 'object') {
+                angular.extend(this.config, obj);
+            } else if (t == 'string') {
+                this.config[obj] = val;
+            }
+            return this;
         };
         this.$get = function() {
             return this.config;
