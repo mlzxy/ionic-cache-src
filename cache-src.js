@@ -5,7 +5,15 @@
         'ngStorage'
     ]);
 
-
+    var startsWith = function(str, arr) {       
+        for(var i = 0;i<arr.length;i++){
+            var sub_str = arr[i];
+            if(str.indexOf(sub_str) === 0){
+                return true;
+            }
+        }        
+        return false;
+    };
 
     var default_config = {
         color: '#1D5ECE',
@@ -18,11 +26,19 @@
         max: 100,
         iterations: 50,
         animation: 'easeInOutQuart',
-        interval: 200
+        interval: 200,
+        showProgressCircleInBrowser: true,
+        showProgressCircleInDevice: true
     };
 
 
-
+    var needDownload = function(path) {
+        if(startsWith(path, ['http://','https://','ftp://'])){
+            return true;
+        }else{
+            return false;
+        }
+    };
 
     var cacheSrc;
 
@@ -67,24 +83,34 @@
                     var config = {};
                     angular.extend(config, $cacheSrc);
                     angular.extend(config, attrs);
-                    var display = element.css('display');
-                    element.css('display', 'none');
                     attrToScope(scope, config);
                     scope.onProgress = scope.onProgress || function() {};
                     scope.onFinish = scope.onFinish || function() {};
-                    element
-                        .after(progress_circle);
-                    var promise = $interval(function() {
-                        scope.progress += 10;
-                        scope.onProgress(scope.progress);
-                        if (scope.progress == 100) {
-                            element.css('display', display);
-                            element[0][config.srcIs || 'src'] = attrs.cacheSrc;
-                            progress_circle.remove();
-                            $interval.cancel(promise);
-                            scope.onFinish(attrs.cacheSrc);
+                    
+                    if (needDownload(attrs.cacheSrc)) {
+                        if (config.showProgressCircleInBrowser) {
+                            var display = element.css('display');
+                            element.css('display', 'none');
+                            element
+                                .after(progress_circle);
                         }
-                    }, config.interval);
+                        var promise = $interval(function() {
+                            scope.progress += 10;
+                            scope.onProgress(scope.progress);
+                            if (scope.progress == 100) {
+                                $interval.cancel(promise);
+                                if (config.showProgressCircleInBrowser) {
+                                    element.css('display', display);
+                                    progress_circle.remove();
+                                }
+                                element[0][config.srcIs || 'src'] = attrs.cacheSrc;
+                                scope.onFinish(attrs.cacheSrc);
+                            }
+                        }, config.interval);
+                    } else {
+                        element[0][config.srcIs || 'src'] = attrs.cacheSrc;
+                        scope.onFinish(attrs.cacheSrc);
+                    }
                 }
             };
         };
@@ -98,6 +124,7 @@
                 case 'Android':
                     return window.cordova.file.externalDataDirectory;
             }
+            return '';
         };
 
 
@@ -114,40 +141,50 @@
                     var config = {};
                     angular.extend(config, $cacheSrc);
                     angular.extend(config, attrs);
-                    var display = element.css('display');
-                    element.css('display', 'none');
                     attrToScope(scope, config);
                     scope.onProgress = scope.onProgress || function() {};
                     scope.onFinish = scope.onFinish || function() {};
                     scope.onError = scope.onError || function() {};
-                    element
-                        .after(progress_circle);
-                    var ext = '.' + attrs.cacheSrc.split('.').pop();
-                    //**********//
                     var cache = $localStorage.cache_src = $localStorage.cache_src || {};
-                    var finish = function(result) {
-                        element[0][config.srcIs || 'src'] = result;
-                        element.css('display', display);
-                        scope.onFinish(result);
-                        progress_circle.remove();
-                    };
+                    
+                    if (needDownload(attrs.cacheSrc)) {
+                        var ext = '.' + attrs.cacheSrc.split('.').pop();                        
+                        if (config.showProgressInDevice) {
+                            var display = element.css('display');
+                            element.css('display', 'none');
+                            element
+                                .after(progress_circle);
+                        }
+                        //**********//                        
+                        var finish = function(result) {
+                            if (config.showProgressInDevice) {
+                                element.css('display', display);
+                                progress_circle.remove();
+                            }
+                            element[0][config.srcIs || 'src'] = result;
+                            scope.onFinish(result);
+                        };
 
-                    if (cache[attrs.cacheSrc]) {
-                        finish(cache[attrs.cacheSrc]);
+                        if (cache[attrs.cacheSrc]) {
+                            finish(cache[attrs.cacheSrc]);
+                        } else {
+                            $ionicPlatform.ready(function() {
+                                $cordovaFileTransfer.download(attrs.cacheSrc, getCacheDir(device.platform) + id() + ext, {}, true)
+                                    .then(function(result) {
+                                        console.dir(result);
+                                        cache[attrs.cacheSrc] = result.nativeURL;
+                                        finish(result.nativeURL);
+                                    }, function(err) {
+                                        console.dir(err);
+                                        scope.onError(err);
+                                    }, function(progress) {
+                                        scope.onProgress((progress.loaded / progress.total) * 100);
+                                    });
+                            });
+                        }
                     } else {
-                        $ionicPlatform.ready(function() {
-                            $cordovaFileTransfer.download(attrs.cacheSrc, getCacheDir(device.platform) + id() + ext, {}, true)
-                                .then(function(result) {
-                                    console.dir(result);
-                                    cache[attrs.cacheSrc] = result.nativeURL;
-                                    finish(result.nativeURL);
-                                }, function(err) {
-                                    console.dir(err);
-                                    scope.onError(err);
-                                }, function(progress) {
-                                    scope.onProgress((progress.loaded / progress.total) * 100);
-                                });
-                        });
+                        element[0][config.srcIs || 'src'] = attrs.cacheSrc;
+                        scope.onFinish(attrs.cacheSrc);
                     }
                 }
             };
