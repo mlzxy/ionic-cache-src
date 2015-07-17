@@ -94,6 +94,13 @@ if(!window.cordova){
 }
 ```
 
+### for local file path
+
+> The plugin will download and cache the file if the url is `http`, `https` or `ftp`, otherwise it won't.
+
+So it works for local file path, or base64 etc...
+
+
 ### config
 
 ```js
@@ -109,6 +116,8 @@ Key, Value for options like
 
 - `srcIs`
 - `onError` etc...
+- `showProgressCircleInBrowser` whether show progress circle in browser
+- `showProgressCircleInDevice` whether show progress circle in device
 - `interval` browser mock progress circle period, by default 200.
 - options for progress circle
 
