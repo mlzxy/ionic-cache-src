@@ -79,7 +79,7 @@
                     'onError': '=?'
                 },
                 link: function(scope, element, attrs) {
-                    var progress_circle = makeProgressCircle(scope, $compile);
+                    var progress_circle;
                     var config = {};
                     angular.extend(config, $cacheSrc);
                     angular.extend(config, attrs);
@@ -89,6 +89,7 @@
                     
                     if (needDownload(attrs.cacheSrc)) {
                         if (config.showProgressCircleInBrowser) {
+                            progress_circle = makeProgressCircle(scope, $compile);
                             var display = element.css('display');
                             element.css('display', 'none');
                             element
@@ -120,7 +121,7 @@
         var getCacheDir = function(plt) {
             switch (plt) {
                 case 'iOS':
-                    return window.cordova.file.externalDataDirectory;
+                return window.cordova.file.documentsDirectory ;
                 case 'Android':
                     return window.cordova.file.externalDataDirectory;
             }
@@ -137,7 +138,7 @@
                     'onError': '=?'
                 },
                 link: function(scope, element, attrs) {
-                    var progress_circle = makeProgressCircle(scope, $compile);
+                    var progress_circle;
                     var config = {};
                     angular.extend(config, $cacheSrc);
                     angular.extend(config, attrs);
@@ -150,6 +151,7 @@
                     if (needDownload(attrs.cacheSrc)) {
                         var ext = '.' + attrs.cacheSrc.split('.').pop();                        
                         if (config.showProgressInDevice) {
+                            progress_circle = makeProgressCircle(scope, $compile);
                             var display = element.css('display');
                             element.css('display', 'none');
                             element
