@@ -137,5 +137,7 @@ Key, Value for options like
 Literally I think it will work for any tags, like `video`, `audio`, `img`... But I only test it on img.
 
 
+### Reinstall Issues
 
+During development, reinstall app on devices without uninstall/install, the localstorage seems to retain, but the image gone.
 
