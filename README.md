@@ -139,5 +139,5 @@ Literally I think it will work for any tags, like `video`, `audio`, `img`... But
 
 ### Reinstall Issues
 
-During development, reinstall app on devices without uninstall/install, the localstorage seems to retain, but the image gone.
+During development, reinstall app on devices without uninstall/install, the localstorage seems to retain, but the image gone. Maybe later I should choose another directory to save the downloaded image
 
