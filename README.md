@@ -101,6 +101,18 @@ if(!window.cordova){
 So it works for local file path, or base64 etc...
 
 
+### service
+
+```js
+module.controller(function(cacheSrcService){
+    cacheSrcService.set(url, localUrl);
+    var localUrl = cacheSrcService.get(url); // get localpath of url if exists
+    cacheSrcService.reset(); // remove all localcache (from localstorage)
+    
+})
+
+```
+
 ### config
 
 ```js
@@ -120,6 +132,8 @@ Key, Value for options like
 - `showProgressCircleInDevice` whether show progress circle in device
 - `interval` browser mock progress circle period, by default 200.
 - options for progress circle
+
+
 
 
 

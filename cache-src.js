@@ -1,17 +1,19 @@
 (function() {
+
+
     var module = angular.module('ionic-cache-src', [
         'angular-svg-round-progress',
         'ngCordova',
         'ngStorage'
     ]);
 
-    var startsWith = function(str, arr) {       
-        for(var i = 0;i<arr.length;i++){
+    var startsWith = function(str, arr) {
+        for (var i = 0; i < arr.length; i++) {
             var sub_str = arr[i];
-            if(str.indexOf(sub_str) === 0){
+            if (str.indexOf(sub_str) === 0) {
                 return true;
             }
-        }        
+        }
         return false;
     };
 
@@ -33,9 +35,9 @@
 
 
     var needDownload = function(path) {
-        if(startsWith(path, ['http://','https://','ftp://'])){
+        if (startsWith(path, ['http://', 'https://', 'ftp://'])) {
             return true;
-        }else{
+        } else {
             return false;
         }
     };
@@ -68,6 +70,24 @@
         scope.textAlign = 'center';
     };
 
+    module.factory('cacheSrcService', function($localStorage) {
+        var r = {};
+        $localStorage.cache_src = $localStorage.cache_src || {};
+        r.storage = $localStorage.cache_src;
+        r.set = function(k, v) {
+            r.storage[k] = v;
+        };
+        r.get = function(k) {
+            return r.storage[k];
+        };
+
+        r.reset = function() {
+            $localStorage.cache_src = {};
+            r.storage = $localStorage.cache_src;
+        };
+        return r;
+    });
+
     if (!window.cordova) {
         // inbrowser
         cacheSrc = function($timeout, $compile, $cacheSrc, $interval) {
@@ -79,17 +99,16 @@
                     'onError': '=?'
                 },
                 link: function(scope, element, attrs) {
-                    var progress_circle;
+                    var progress_circle = makeProgressCircle(scope, $compile);
                     var config = {};
                     angular.extend(config, $cacheSrc);
                     angular.extend(config, attrs);
                     attrToScope(scope, config);
                     scope.onProgress = scope.onProgress || function() {};
                     scope.onFinish = scope.onFinish || function() {};
-                    
+
                     if (needDownload(attrs.cacheSrc)) {
                         if (config.showProgressCircleInBrowser) {
-                            progress_circle = makeProgressCircle(scope, $compile);
                             var display = element.css('display');
                             element.css('display', 'none');
                             element
@@ -121,12 +140,24 @@
         var getCacheDir = function(plt) {
             switch (plt) {
                 case 'iOS':
-                return window.cordova.file.documentsDirectory ;
+                return window.cordova.file.cacheDirectory;
                 case 'Android':
                     return window.cordova.file.externalDataDirectory;
             }
             return '';
         };
+        var network = {};
+        if (document.addEventListener) {
+            document.addEventListener("offline",
+                                      function() {
+                                          network.onLine = false;
+                                      }, false);
+            document.addEventListener("online", function() {
+                network.onLine = true;
+            }, false);
+        }
+
+
 
 
         cacheSrc = function($ionicPlatform, $timeout, $compile, $cacheSrc, $cordovaFileTransfer, $localStorage) {
@@ -147,9 +178,9 @@
                     scope.onFinish = scope.onFinish || function() {};
                     scope.onError = scope.onError || function() {};
                     var cache = $localStorage.cache_src = $localStorage.cache_src || {};
-                    
+
                     if (needDownload(attrs.cacheSrc)) {
-                        var ext = '.' + attrs.cacheSrc.split('.').pop();                        
+                        var ext = '.' + attrs.cacheSrc.split('.').pop();
                         if (config.showProgressInDevice) {
                             progress_circle = makeProgressCircle(scope, $compile);
                             var display = element.css('display');
@@ -166,8 +197,7 @@
                             element[0][config.srcIs || 'src'] = result;
                             scope.onFinish(result);
                         };
-
-                        if (cache[attrs.cacheSrc]) {
+                        if (cache[attrs.cacheSrc] && !network.onLine) {
                             finish(cache[attrs.cacheSrc]);
                         } else {
                             $ionicPlatform.ready(function() {
@@ -205,6 +235,7 @@
             }
             return this;
         };
+
         this.$get = function() {
             return this.config;
         };
