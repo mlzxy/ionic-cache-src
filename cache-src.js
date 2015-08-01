@@ -137,30 +137,20 @@
     } else {
         // real device
 
-        var getCacheDir = function(plt) {
+        var getCacheDir = function(plt) {            
             switch (plt) {
                 case 'iOS':
-                return window.cordova.file.cacheDirectory;
+                return window.cordova.file.dataDirectory;
                 case 'Android':
-                    return window.cordova.file.externalDataDirectory;
+                    return window.cordova.file.dataDirectory;
             }
             return '';
         };
-        var network = {};
-        if (document.addEventListener) {
-            document.addEventListener("offline",
-                                      function() {
-                                          network.onLine = false;
-                                      }, false);
-            document.addEventListener("online", function() {
-                network.onLine = true;
-            }, false);
-        }
 
 
 
 
-        cacheSrc = function($ionicPlatform, $timeout, $compile, $cacheSrc, $cordovaFileTransfer, $localStorage) {
+        cacheSrc = function($ionicPlatform, $timeout, $compile, $cacheSrc, $cordovaFileTransfer, $localStorage, $cordovaNetwork) {
             return {
                 restrict: 'A',
                 scope: {
@@ -168,7 +158,7 @@
                     'onFinish': '=?',
                     'onError': '=?'
                 },
-                link: function(scope, element, attrs) {
+                link: function(scope, element, attrs) {                    
                     var progress_circle;
                     var config = {};
                     angular.extend(config, $cacheSrc);
@@ -197,7 +187,7 @@
                             element[0][config.srcIs || 'src'] = result;
                             scope.onFinish(result);
                         };
-                        if (cache[attrs.cacheSrc] && !network.onLine) {
+                        if (cache[attrs.cacheSrc] && $cordovaNetwork.isOffline()) {
                             finish(cache[attrs.cacheSrc]);
                         } else {
                             $ionicPlatform.ready(function() {
