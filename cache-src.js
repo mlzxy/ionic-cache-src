@@ -140,7 +140,7 @@
         var getCacheDir = function(plt) {            
             switch (plt) {
                 case 'iOS':
-                return window.cordova.file.dataDirectory;
+                return window.cordova.file.documentsDirectory;
                 case 'Android':
                     return window.cordova.file.dataDirectory;
             }
@@ -150,7 +150,7 @@
 
 
 
-        cacheSrc = function($ionicPlatform, $timeout, $compile, $cacheSrc, $cordovaFileTransfer, $localStorage, $cordovaNetwork) {
+        cacheSrc = function($ionicPlatform, $timeout, $compile, $cacheSrc, $cordovaFileTransfer, $localStorage) {
             return {
                 restrict: 'A',
                 scope: {
@@ -187,7 +187,7 @@
                             element[0][config.srcIs || 'src'] = result;
                             scope.onFinish(result);
                         };
-                        if (cache[attrs.cacheSrc] && $cordovaNetwork.isOffline()) {
+                        if (cache[attrs.cacheSrc]) {
                             finish(cache[attrs.cacheSrc]);
                         } else {
                             $ionicPlatform.ready(function() {
