@@ -1,3 +1,7 @@
+# NOTICE
+
+Several bugs fixed in 0.4.2, consider to update.
+
 # ionic-cache-src
 
 Just change `src` to `cache-src`
@@ -27,8 +31,10 @@ bower install ionic-cache-src
 ```html
 <script src="lib/ngCordova/dist/ng-cordova.min.js"></script>
 <script src="cordova.js"></script>
+<script src="cordova_plugins.js"></script>
 <script src="lib/ngstorage/ngStorage.min.js"></script>
 <script src="lib/angular-svg-round-progressbar/build/roundProgress.min.js"></script>
+<script src="lib/ionic-cache-src/cache-src.js"></script>
 ```
 
 - and it use [cordova-plugin-file-transfer](https://github.com/apache/cordova-plugin-file-transfer) and [cordova-plugin-file](https://github.com/apache/cordova-plugin-file), so
@@ -39,7 +45,7 @@ cordova plugin add cordova-plugin-file cordova-plugin-file-transfer
 
 - add `ionic-cache-src` to your angular module declaration dependencies
 
-
+- Done
 
 
 ## How it Work
@@ -131,12 +137,7 @@ Key, Value for options like
 - `showProgressCircleInBrowser` whether show progress circle in browser
 - `showProgressCircleInDevice` whether show progress circle in device
 - `interval` browser mock progress circle period, by default 200.
-- options for progress circle
-
-
-
-
-
+-  options for progress circle  [angular-svg-round-progressbar](https://github.com/crisbeto/angular-svg-round-progressbar)
 
 
 
@@ -146,12 +147,35 @@ Key, Value for options like
 ## Attention
 
 
-### Any tags
+### cordova_plugins.js
 
-Literally I think it will work for any tags, like `video`, `audio`, `img`... But I only test it on img.
+Because of https://github.com/driftyco/ionic-plugin-keyboard/issues/82 , the `ionicPlatform.ready` may fail from exception. Add 
+
+```html
+<script src="cordova_plugins.js"></script>
+```
+
+solve the problem.
 
 
-### Reinstall Issues
+### $localstorage.cache_src
 
-During development, reinstall app on devices without uninstall/install, the localstorage seems to retain, but the image gone. Maybe later I should choose another directory to save the downloaded image
+This plugin store cache info as  `$localstorage.cache_src = {RemoteUrl:LocalUrl}`, and there is a factory defined:
+
+```js
+    module.factory('cacheSrcStorage', function($localStorage) {
+        var c = {};
+        c._cache = $localStorage.cache_src;
+        c.get = function(url){
+            return c._cache[url] && getCacheDir() + c._cache[url];
+        };
+        c.set = function(url,localUrl){
+            c._cache[url] = localUrl;
+            return c;
+        };
+        return c;
+    });
+```
+which you can use to access the cached file
+
 
