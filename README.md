@@ -151,13 +151,13 @@ Key, Value for options like
 
 ### cordova_plugins.js
 
-Because of https://github.com/driftyco/ionic-plugin-keyboard/issues/82 , the `ionicPlatform.ready` may fail from exception. Add 
+Because of https://github.com/driftyco/ionic-plugin-keyboard/issues/82 , the `ionicPlatform.ready` may fail from exception. If you encounter this problem, Add 
 
 ```html
 <script src="cordova_plugins.js"></script>
 ```
 
-solve the problem.
+solve it.
 
 
 ### $localstorage.cache_src
@@ -181,3 +181,8 @@ This plugin store cache info as  `$localstorage.cache_src = {RemoteUrl:LocalUrl}
 which you can use to access the cached file
 
 
+#### livereload
+
+> When using live reload, you’re actually running the assets off the computer and not the device
+
+You will get an error: `Not allowed to load local resource`, but it will only occur when livereloading.
