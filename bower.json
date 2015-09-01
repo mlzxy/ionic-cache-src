@@ -5,7 +5,9 @@
     "Xinyu Zhang <beviszhang1993@gmail.com>"
   ],
   "description": "A Cache Ionic Plugin, works for any tags, and will show a progress circle when the download is not done",
-  "main": "cacheSrc.js",
+  "main": [
+    "cache-src.js"
+  ],
   "keywords": [
     "ionic",
     "cache",
@@ -24,7 +26,7 @@
   ],
   "dependencies": {
     "angular": "~1.4.3",
-    "ngCordova": "~0.1.17-alpha",    
+    "ngCordova": "~0.1.17-alpha",
     "angular-svg-round-progressbar": "~0.2.10",
     "ionic": "~1.0.1",
     "ngstorage": "~0.3.7"
