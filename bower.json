@@ -6,7 +6,7 @@
   ],
   "description": "A Cache Ionic Plugin, works for any tags, and will show a progress circle when the download is not done",
   "main": [
-    "cache-src.js"
+    "ionic-cache-src.js"
   ],
   "keywords": [
     "ionic",
