@@ -1,6 +1,6 @@
 {
   "name": "ionic-cache-src",
-  "version": "0.3.0",
+  "version": "0.4.4",
   "authors": [
     "Xinyu Zhang <beviszhang1993@gmail.com>"
   ],
@@ -25,10 +25,10 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "~1.4.3",
+    "angular": "~1.4.5",
     "ngCordova": "~0.1.17-alpha",
     "angular-svg-round-progressbar": "~0.2.10",
-    "ionic": "~1.0.1",
+    "ionic": "~1.1.0",
     "ngstorage": "~0.3.7"
   }
 }
