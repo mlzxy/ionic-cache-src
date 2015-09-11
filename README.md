@@ -36,7 +36,7 @@ bower install ionic-cache-src
 <script src="cordova_plugins.js"></script>
 <script src="lib/ngstorage/ngStorage.min.js"></script>
 <script src="lib/angular-svg-round-progressbar/build/roundProgress.min.js"></script>
-<script src="lib/ionic-cache-src/cache-src.js"></script>
+<script src="lib/ionic-cache-src/ionic-cache-src.js"></script>
 ```
 
 - and it use [cordova-plugin-file-transfer](https://github.com/apache/cordova-plugin-file-transfer) and [cordova-plugin-file](https://github.com/apache/cordova-plugin-file), so
