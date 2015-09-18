@@ -1,5 +1,8 @@
 # NOTICE
 
+- I am a little bit rushed with writing 0.5.0, fix several bugs in 0.5.2
+
+
 - Enhancements in 0.5.0
   - support background image
   - could use your own progress indicator instead of the builtin progress circle
@@ -81,11 +84,11 @@ very simple strategy
 
 ## Usage
 
-### custom the progress circle
+### Custom the progress circle
 
 it accepts all options for [angular-svg-round-progressbar](https://github.com/crisbeto/angular-svg-round-progressbar) , except for `current`
 
-### change src
+### Change src
 
 ```html
 <img cache-src="" src-is="alt" />
@@ -99,7 +102,7 @@ will be rendered to
 not so useful though.
 
 
-### background image
+### Background image
 
 ```html
 <div  cache-src="http://farm4.static.flickr.com/3131/2877192571_3eb8bcf431.jpg"
@@ -108,7 +111,7 @@ src-is="background" >
 </div>
 ```
 
-#### custom background style
+#### Custom background style
 
 ```html
 <div  cache-src="http://farm4.static.flickr.com/3131/2877192571_3eb8bcf431.jpg"
@@ -130,7 +133,7 @@ background-loading-style="url('path/to/your/loading/image.gif') no-repeat center
 - Default `background-loading-style` is `url('lib/ionic-cache-src/img/loader.gif') no-repeat center`
 
 
-### inline progress circle
+### Inline progress circle
 
 By default the progress circle is a block div, here is source code.
 
@@ -154,7 +157,7 @@ So you could change its style using `circleContainerStyle`
 ```
 
 
-### callback
+### Callback
 
 ```html
 <img cache-src="" on-error="onError" on-finish="onFinish" on-progress="fun" />
@@ -167,15 +170,15 @@ function onFinish(naiveUrl){}
 function onProgress(number){}
 ```
 
-Note that they will only be called if the image needs to be downloaded.
+Note that the `OnProgress` and `OnStart` will only be called if a download is needed.
 
-### inbroswer
+### Work in broswer
 
 It will works in browser with a mock download process.
 
 
 
-### for local file path
+### For local file path
 
 > The plugin will download and cache the file if the url is `http`, `https` or `ftp`, otherwise it won't.
 
@@ -204,7 +207,71 @@ which you can use to access the cached file
 
 
 
-### config
+### Use custom progress indicator instead of built-in progress circle
+
+Use callback
+
+```
+uiOnStart, uiOnProgress, uiOnFinish
+```
+
+Here is the default source of this three functions, which implements the progress circle. Take it as reference and write your own.
+
+```js
+    function makeProgressCircle($scope, $compile) {
+        return angular.element($compile('<div style="{{circleContainerStyle}}"><div round-progress  max="max"  current="progress"  color="{{color}}" bgcolor="{{bgcolor}}"  radius="{{radius}}"  stroke="{{stroke}}"  rounded="rounded" clockwise="clockwise" iterations="{{iterations}}"  animation="{{animation}}"></div></div>')($scope));
+    };
+
+    var uiOnProgress = function(scope, element, $compile, uiData) {
+        scope.progress = uiData.progress;
+    };
+    var uiOnStart = function(scope, element, $compile, uiData) {
+        if (scope.srcIs == 'background') {
+            element[0].style.background = scope.backgroundLoadingStyle;
+        } else {
+            extend(scope, default_circle_style);
+            var progress_circle;
+
+            function addCircle() {
+                progress_circle = makeProgressCircle(scope, $compile);
+                uiData.display = element.css('display');
+                element.css('display', 'none');
+                element.after(progress_circle);
+            };
+
+            if (window.cordova) {
+                if (scope.showProgressCircleInDevice) {
+                    addCircle();
+                }
+            } else {
+                if (scope.showProgressCircleInBrowser) {
+                    addCircle();
+                }
+            }
+            uiData.progress_circle = progress_circle;
+        }
+    };
+    var uiOnFinish = function(scope, element, $compile, uiData) {
+        if (scope.srcIs != 'background') {
+            function rmCircle() {
+                element.css('display', uiData.display);
+                uiData.progress_circle.remove();
+            }
+            if (window.cordova) {
+                if (scope.showProgressCircleInDevice) {
+                    rmCircle();
+                }
+            } else {
+                if (scope.showProgressCircleInBrowser) {
+                    rmCircle();
+                }
+            }
+        }
+    };
+```
+
+
+### Config
 
 ```js
 module.config(function($cacheSrcProvider){
@@ -226,7 +293,7 @@ Key, Value for options like
 
 - `backgroundStyle` and `backgroundLoadingStyle`
 - `circleContainerStyle`
-
+- Anything you like, if you use custom progress indicator.
 
 Note that the in-tag config has the higher priority than  `$cacheSrcProvider`
 

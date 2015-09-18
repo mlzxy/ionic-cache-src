@@ -13,6 +13,9 @@
         for(var k in src)
             dst[k] = dst[k] || src[k];
     }
+    function ensureFunction(x, y) {
+        return typeof x == 'function' ? x : y;
+    };
     
     // For the Default Progress Circle
     //****************************************************************************************************//
@@ -173,24 +176,15 @@
                         if(!angular.isFunction(scope[k])){
                             scope[k] = attrs[k];
                         }
-                    }
-                    
-                    
-                    function ensureFunction(x, y) {
-                        return typeof x == 'function' ? x : y;
-                    };
-
-
+                    }                    
+                   
                     scope.onProgress = ensureFunction(scope.onProgress, angular.noop);
                     scope.onFinish = ensureFunction(scope.onFinish, angular.noop);
                     scope.onError = ensureFunction(scope.onError, angular.noop);
                     scope.onStart = ensureFunction(scope.onStart, angular.noop);
-
                     scope.uiOnProgress = ensureFunction(scope.uiOnProgress, uiOnProgress); //use default ones
                     scope.uiOnFinish = ensureFunction(scope.uiOnFinish, uiOnFinish);
                     scope.uiOnStart = ensureFunction(scope.uiOnStart, uiOnStart);
-
-
 
 
                     function addSrc(result) {
@@ -201,8 +195,6 @@
                         }
                         scope.onFinish(result);
                     };
-
-
 
 
                     if ($window.cordova) {
@@ -265,6 +257,7 @@
                                 if (needDownload(attrs.cacheSrc)) {
                                     
                                     var uiData = {};
+                                    scope.onStart(attrs.cacheSrc);
                                     scope.uiOnStart(scope, element, $compile, uiData);
                                     
                                     uiData.progress = scope.progress || 0;
