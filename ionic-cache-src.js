@@ -1,11 +1,6 @@
 (function() {
 
 
-    var default_config = {
-        interval: 200,
-        backgroundStyle:'',
-        backgroundLoadingStyle:"url('lib/ionic-cache-src/img/loader.gif') no-repeat center"
-    };
     
 
 
@@ -88,6 +83,15 @@
     };
     //****************************************************************************************************//
 
+    
+    var default_config = {
+        interval: 200,
+        backgroundStyle:'',
+        backgroundLoadingStyle:"url('lib/ionic-cache-src/img/loader.gif') no-repeat center",
+        uiOnStart:uiOnStart,
+        uiOnFinish:uiOnFinish,
+        uiOnProgress:uiOnProgress
+    };
 
     angular
         .module('ionic-cache-src', [
@@ -182,9 +186,9 @@
                     scope.onFinish = ensureFunction(scope.onFinish, angular.noop);
                     scope.onError = ensureFunction(scope.onError, angular.noop);
                     scope.onStart = ensureFunction(scope.onStart, angular.noop);
-                    scope.uiOnProgress = ensureFunction(scope.uiOnProgress, uiOnProgress); //use default ones
-                    scope.uiOnFinish = ensureFunction(scope.uiOnFinish, uiOnFinish);
-                    scope.uiOnStart = ensureFunction(scope.uiOnStart, uiOnStart);
+                    scope.uiOnProgress = ensureFunction(scope.uiOnProgress, angular.noop); //use default ones
+                    scope.uiOnFinish = ensureFunction(scope.uiOnFinish, angular.noop);
+                    scope.uiOnStart = ensureFunction(scope.uiOnStart, angular.noop);
 
 
                     function addSrc(result) {

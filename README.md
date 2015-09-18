@@ -1,6 +1,6 @@
 # NOTICE
 
-- I am a little bit rushed with writing 0.5.0, fix several bugs in 0.5.2
+- I am a little bit rushed with writing 0.5.0, fix several bugs in 0.5.3
 
 
 - Enhancements in 0.5.0
@@ -160,7 +160,7 @@ So you could change its style using `circleContainerStyle`
 ### Callback
 
 ```html
-<img cache-src="" on-error="onError" on-finish="onFinish" on-progress="fun" />
+<img cache-src="" on-error="onError" on-start="onStart" on-finish="onFinish" on-progress="fun" />
 ```
 
 ```js
@@ -206,6 +206,35 @@ This plugin store cache info as  `$localstorage.cache_src = {RemoteUrl:LocalUrl}
 which you can use to access the cached file
 
 
+### Config
+
+```js
+module.config(function($cacheSrcProvider){
+    $cacheSrcProvider
+              .set('key',value)
+              .set({key:value}); // set option
+})
+
+```
+Key, Value for options like
+
+- `srcIs` 
+- `onError` for global use etc...
+- `showProgressCircleInBrowser` whether show progress circle in browser
+- `showProgressCircleInDevice` whether show progress circle in device
+- `interval` browser mock progress circle period, by default 200.
+-  options for progress circle  [angular-svg-round-progressbar](https://github.com/crisbeto/angular-svg-round-progressbar)
+
+- `backgroundStyle` and `backgroundLoadingStyle`
+- `circleContainerStyle`
+- Anything you like, if you use custom progress indicator.
+
+Note that the in-tag config has the higher priority than  `$cacheSrcProvider`
+
+
+
+
+
 
 ### Use custom progress indicator instead of built-in progress circle
 
@@ -218,6 +247,15 @@ uiOnStart, uiOnProgress, uiOnFinish
 Here is the default source of this three functions, which implements the progress circle. Take it as reference and write your own.
 
 ```js
+    var default_config = {
+        interval: 200,
+        backgroundStyle:'',
+        backgroundLoadingStyle:"url('lib/ionic-cache-src/img/loader.gif') no-repeat center",
+        uiOnStart:uiOnStart,
+        uiOnFinish:uiOnFinish,
+        uiOnProgress:uiOnProgress
+    };
+
     function makeProgressCircle($scope, $compile) {
         return angular.element($compile('<div style="{{circleContainerStyle}}"><div round-progress  max="max"  current="progress"  color="{{color}}" bgcolor="{{bgcolor}}"  radius="{{radius}}"  stroke="{{stroke}}"  rounded="rounded" clockwise="clockwise" iterations="{{iterations}}"  animation="{{animation}}"></div></div>')($scope));
     };
@@ -270,32 +308,18 @@ Here is the default source of this three functions, which implements the progres
     };
 ```
 
-
-### Config
+To use your own uiOn* functions
 
 ```js
 module.config(function($cacheSrcProvider){
     $cacheSrcProvider
-              .set('key',value)
-              .set({key:value}); // set option
-
-})
-
+              .set('uiOnStart', myUiOnStart)
+              .set('uiOnProgress', myUiOnProgress)
+              .set('uiOnFinish', myUiOnFinish);
+}); 
 ```
-Key, Value for options like
 
-- `srcIs` 
-- `onError` for global use etc...
-- `showProgressCircleInBrowser` whether show progress circle in browser
-- `showProgressCircleInDevice` whether show progress circle in device
-- `interval` browser mock progress circle period, by default 200.
--  options for progress circle  [angular-svg-round-progressbar](https://github.com/crisbeto/angular-svg-round-progressbar)
 
-- `backgroundStyle` and `backgroundLoadingStyle`
-- `circleContainerStyle`
-- Anything you like, if you use custom progress indicator.
-
-Note that the in-tag config has the higher priority than  `$cacheSrcProvider`
 
 
 <br>
