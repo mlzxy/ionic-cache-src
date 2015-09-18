@@ -1,20 +1,86 @@
-(function () {
+(function() {
+
 
     var default_config = {
-        color                      : '#1D5ECE',
-        bgcolor                    : '#eaeaea',
-        semi                       : false,
-        rounded                    : false,
-        clockwise                  : true,
-        radius                     : '15',
-        stroke                     : '5',
-        max                        : 100,
-        iterations                 : 50,
-        animation                  : 'easeOutCubic',
-        interval                   : 200,
-        showProgressCircleInBrowser: true,
-        showProgressCircleInDevice : true
+        interval: 200,
+        backgroundStyle:'',
+        backgroundLoadingStyle:"url('lib/ionic-cache-src/img/loader.gif') no-repeat center"
     };
+    
+
+    // For the Default Progress Circle
+    //****************************************************************************************************//
+    var default_circle_style = {
+        color: '#1D5ECE',
+        bgcolor: '#eaeaea',
+        semi: false,
+        rounded: false,
+        clockwise: true,
+        radius: '15',
+        stroke: '5',
+        max: 100,
+        iterations: 50,
+        animation: 'easeOutCubic',
+        interval: 200,
+        showProgressCircleInBrowser: true,
+        showProgressCircleInDevice: true,
+        circleContainerStyle: 'text-align:center'
+    };
+
+    function makeProgressCircle($scope, $compile) {
+        return angular.element($compile('<div style="{{circleContainerStyle}}"><div round-progress  max="max"  current="progress"  color="{{color}}" bgcolor="{{bgcolor}}"  radius="{{radius}}"  stroke="{{stroke}}"  rounded="rounded" clockwise="clockwise" iterations="{{iterations}}"  animation="{{animation}}"></div></div>')($scope));
+    };
+
+    var uiOnProgress = function(scope, element, $compile, uiData) {
+        scope.progress = uiData.progress;
+    };
+    var uiOnStart = function(scope, element, $compile, uiData) {
+        if (scope.srcIs == 'background') {
+            element[0].style.background = scope.backgroundLoadingStyle;
+        } else {
+            for (var k in default_circle_style) {
+                scope[k] = scope[k] || default_circle_style[k];
+            }
+            var progress_circle;
+
+            function addCircle() {
+                progress_circle = makeProgressCircle(scope, $compile);
+                uiData.display = element.css('display');
+                element.css('display', 'none');
+                element.after(progress_circle);
+            };
+
+            if (window.cordova) {
+                if (scope.showProgressCircleInDevice) {
+                    addCircle();
+                }
+            } else {
+                if (scope.showProgressCircleInBrowser) {
+                    addCircle();
+                }
+            }
+            uiData.progress_circle = progress_circle;
+        }
+    };
+    var uiOnFinish = function(scope, element, $compile, uiData) {
+        if (scope.srcIs != 'background') {
+            function rmCircle() {
+                element.css('display', uiData.display);
+                uiData.progress_circle.remove();
+            }
+            if (window.cordova) {
+                if (scope.showProgressCircleInDevice) {
+                    rmCircle();
+                }
+            } else {
+                if (scope.showProgressCircleInBrowser) {
+                    rmCircle();
+                }
+            }
+        }
+    };
+    //****************************************************************************************************//
+
 
     angular
         .module('ionic-cache-src', [
@@ -23,9 +89,9 @@
             'ngCordova',
             'ngStorage'
         ])
-        .provider('$cacheSrc', function () {
+        .provider('$cacheSrc', function() {
             this.config = default_config;
-            this.set    = function (obj, val) {
+            this.set = function(obj, val) {
                 var t = typeof obj;
                 if (t == 'object') {
                     angular.extend(this.config, obj);
@@ -35,42 +101,43 @@
                 return this;
             };
 
-            this.$get = function () {
+            this.$get = function() {
                 return this.config;
             };
         })
-        .factory('cacheSrcStorage', function ($localStorage) {
-            var c    = {};
+        .factory('cacheSrcStorage', function($localStorage) {
+            var c = {};
             c._cache = $localStorage.cache_src;
-            c.get    = function (url) {
+            c.get = function(url) {
                 return c._cache[url] && (getCacheDir() + c._cache[url]);
             };
-            c.set    = function (url, localUrl) {
+            c.set = function(url, localUrl) {
                 c._cache[url] = localUrl;
                 return c;
             };
             return c;
         })
-        .directive('cacheSrc', function ($ionicPlatform, $window, $interval, $timeout, $compile, $cacheSrc, $cordovaFileTransfer, $localStorage, $cordovaNetwork) {
+        .directive('cacheSrc', function($ionicPlatform, $window, $interval, $timeout, $compile, $cacheSrc, $cordovaFileTransfer, $localStorage) {
             return {
                 restrict: 'A',
-                scope   : {
+                scope: {
                     'onProgress': '=?',
-                    'onFinish'  : '=?',
-                    'onError'   : '=?'
+                    'onFinish': '=?',
+                    'onError': '=?',
+                    'onStart': '=?',
+                    // 
+                    'uiOnStart': '=?',
+                    'uiOnProgress': '=?',
+                    'uiOnFinish': '=?'
                 },
-                link    : function (scope, element, attrs) {
+                link: function(scope, element, attrs) {
 
                     function id() {
-                        var text     = "";
+                        var text = "";
                         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
                         for (var i = 0; i < 16; i++)
                             text += possible.charAt(Math.floor(Math.random() * possible.length));
                         return text;
-                    };
-
-                    function makeProgressCircle($scope, $compile) {
-                        return angular.element($compile('<div style="text-align:{{textAlign}}"><div round-progress  max="max"  current="progress"  color="{{color}}" bgcolor="{{bgcolor}}"  radius="{{radius}}"  stroke="{{stroke}}"  rounded="rounded" clockwise="clockwise" iterations="{{iterations}}"  animation="{{animation}}"></div></div>')($scope));
                     };
 
                     function startsWith(str, arr) {
@@ -96,24 +163,39 @@
                         }
                     };
 
-                    function attrToScope(scope, attrs) {
-                        scope.progress   = 0;
-                        scope.max        = 100;
-                        scope.radius     = attrs.radius;
-                        scope.stroke     = attrs.stroke;
-                        scope.animation  = attrs.animation;
-                        scope.clockwise  = attrs.clockwise;
-                        scope.color      = attrs.color;
-                        scope.bgcolor    = attrs.bgcolor;
-                        scope.rounded    = attrs.rounded;
-                        scope.iterations = attrs.iterations;
-                        scope.textAlign  = 'center';
+                    angular.extend(scope, $cacheSrc);
+                    angular.extend(scope, attrs);
+
+                    function ensureFunction(x, y) {
+                        return typeof x == 'function' ? x : y;
                     };
 
-                    if ($window.cordova) {
-                        var isIOS     = ionic.Platform.isIOS();
-                        var isAndroid = ionic.Platform.isAndroid();
 
+                    scope.onProgress = ensureFunction(scope.onProgress, angular.noop);
+                    scope.onFinish = ensureFunction(scope.onFinish, angular.noop);
+                    scope.onError = ensureFunction(scope.onError, angular.noop);
+                    scope.onStart = ensureFunction(scope.onStart, angular.noop);
+
+                    scope.uiOnProgress = ensureFunction(scope.uiOnProgress, uiOnProgress); //use default ones
+                    scope.uiOnFinish = ensureFunction(scope.uiOnFinish, uiOnFinish);
+                    scope.uiOnStart = ensureFunction(scope.uiOnStart, uiOnStart);
+
+
+
+
+                    function addSrc(result) {
+                        if (scope.srcIs == 'background') {
+                            element[0].style.background = "url('" + result + "') " + scope.backgroundStyle;
+                        } else {
+                            element[0][scope.srcIs || 'src'] = result;
+                        }
+                        scope.onFinish(result);
+                    };
+
+
+
+
+                    if ($window.cordova) {
                         function getCacheDir() {
                             switch (device.platform) {
                                 case 'iOS':
@@ -124,65 +206,38 @@
                             return '';
                         };
 
-                        var progress_circle;
-                        var display;
-                        var config       = {};
-                        angular.extend(config, $cacheSrc);
-                        angular.extend(config, attrs);
-                        attrToScope(scope, config);
-                        scope.onProgress = scope.onProgress || function () {
-                            };
-                        scope.onFinish   = scope.onFinish || function () {
-                            };
-                        scope.onError    = scope.onError || function () {
-                            };
-                        var cache        = $localStorage.cache_src = $localStorage.cache_src || {};
-                        //**********//
-                        function finish(result) {
-                            if (config.showProgressCircleInDevice) {
-                                element.css('display', display);
-                                progress_circle.remove();
-                            }
-                            addSrc(result);
-                        };
-
-                        function addSrc(result) {
-                            element[0][config.srcIs || 'src'] = result;
-                            scope.onFinish(result);
-                        };
-
+                        var cache = $localStorage.cache_src = $localStorage.cache_src || {};
 
                         attrs.$observe('cacheSrc',
-                            function () {
+                            function() {
                                 if (attrs.cacheSrc) {
                                     if (needDownload(attrs.cacheSrc)) {
                                         //if cached
                                         if (cache[attrs.cacheSrc]) {
                                             $ionicPlatform
                                                 .ready()
-                                                .then(function () {
+                                                .then(function() {
                                                     addSrc(getCacheDir() + cache[attrs.cacheSrc]);
                                                 });
                                         } else {
                                             // not cache
-                                            if (config.showProgressCircleInDevice) {
-                                                progress_circle = makeProgressCircle(scope, $compile);
-                                                display         = element.css('display');
-                                                element.css('display', 'none');
-                                                element.after(progress_circle);
-                                            }
+                                            var uiData = {};
+                                            scope.onStart(attrs.cacheSrc);
+                                            scope.uiOnStart(scope, element, $compile, uiData);
                                             $ionicPlatform
                                                 .ready()
-                                                .then(function () {
-                                                    var ext      = '.' + attrs.cacheSrc.split('.').pop();
+                                                .then(function() {
+                                                    var ext = '.' + attrs.cacheSrc.split('.').pop();
                                                     var fileName = id() + ext;
                                                     $cordovaFileTransfer
                                                         .download(attrs.cacheSrc, getCacheDir() + fileName, {}, true)
-                                                        .then(function (result) {
+                                                        .then(function() {
                                                             cache[attrs.cacheSrc] = fileName;
-                                                            finish(getCacheDir() + fileName);
-                                                        }, scope.onError, function (progress) {
-                                                            scope.progress = (progress.loaded / progress.total) * 100;
+                                                            scope.uiOnFinish(scope, element, $compile, uiData);
+                                                            addSrc(getCacheDir() + fileName);
+                                                        }, scope.onError, function(progress) {
+                                                            uiData.progress = (progress.loaded / progress.total) * 100;
+                                                            scope.uiOnProgress(scope, element, $compile, uiData);
                                                             scope.onProgress(scope.progress);
                                                         });
                                                 });
@@ -193,44 +248,34 @@
                                 }
                             });
                     } else {
-                        // in browser
-                        var progress_circle = makeProgressCircle(scope, $compile);
-                        var config          = {};
-                        angular.extend(config, $cacheSrc);
-                        angular.extend(config, attrs);
-                        attrToScope(scope, config);
-                        scope.onProgress    = scope.onProgress || function () {
-                            };
-                        scope.onFinish      = scope.onFinish || function () {
-                            };
-                        attrs.$observe('cacheSrc', function () {
+                        // in browser                        
+
+                        attrs.$observe('cacheSrc', function() {
                             if (attrs.cacheSrc) {
                                 if (needDownload(attrs.cacheSrc)) {
-                                    if (config.showProgressCircleInBrowser) {
-                                        var display = element.css('display');
-                                        element.css('display', 'none');
-                                        element
-                                            .after(progress_circle);
-                                    }
-                                    var promise = $interval(function () {
-                                        scope.progress += 10;
-                                        scope.onProgress(scope.progress);
-                                        if (scope.progress == 100) {
+                                    
+                                    var uiData = {};
+                                    scope.uiOnStart(scope, element, $compile, uiData);
+                                    
+                                    uiData.progress = scope.progress || 0;
+                                    // debugger;
+                                    var promise = $interval(function() {
+                                        uiData.progress += 10;
+                                        scope.uiOnProgress(scope, element, $compile, uiData);
+                                        scope.onProgress(uiData.progress);
+
+                                        if (uiData.progress == 100) {
                                             $interval.cancel(promise);
-                                            if (config.showProgressCircleInBrowser) {
-                                                element.css('display', display);
-                                                progress_circle.remove();
-                                            }
-                                            element[0][config.srcIs || 'src'] = attrs.cacheSrc;
-                                            scope.onFinish(attrs.cacheSrc);
+                                            scope.uiOnFinish(scope, element, $compile, uiData);
+                                            addSrc(attrs.cacheSrc);
                                         }
-                                    }, config.interval);
+                                    }, scope.interval);
                                 } else {
-                                    element[0][config.srcIs || 'src'] = attrs.cacheSrc;
-                                    scope.onFinish(attrs.cacheSrc);
+                                    addSrc(attrs.cacheSrc);
                                 }
                             }
                         });
+
                     }
 
                 }
