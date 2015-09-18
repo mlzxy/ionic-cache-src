@@ -3,11 +3,8 @@
 - Enhancements in 0.5.0
   - support background image
   - could use your own progress indicator instead of the builtin progress circle
-
-But I haven't update the readme, will do it soom.
-
-
-
+  - the built-in progress circle could be inline-block
+  
 - Demo and Playground: https://github.com/BenBBear/ionic-cache-src-demo
 
 
@@ -21,7 +18,16 @@ Just change `src` to `cache-src`
 
 and it will take the rest work for you.
 
+
+## Demo
+
+
+### simple
+
 ![](./img/cache.gif)
+
+
+### complex
 
 ![](./img/ionic-cache-src.gif)
 
@@ -41,7 +47,7 @@ bower install ionic-cache-src
 ```html
 <script src="lib/ngCordova/dist/ng-cordova.min.js"></script>
 <script src="cordova.js"></script>
-<script src="cordova_plugins.js"></script>
+<script src="cordova_plugins.js"></script> <!-- This one is optional -->
 <script src="lib/ngstorage/ngStorage.min.js"></script>
 <script src="lib/angular-svg-round-progressbar/build/roundProgress.min.js"></script>
 <script src="lib/ionic-cache-src/ionic-cache-src.js"></script>
@@ -55,6 +61,10 @@ cordova plugin add cordova-plugin-file cordova-plugin-file-transfer
 
 - add `ionic-cache-src` to your angular module declaration dependencies
 
+```js
+angular.module('myApp', ['ionic','ionic-cache-src'])
+```
+
 - Done
 
 
@@ -65,6 +75,8 @@ very simple strategy
 ![](./img/how-it-work.jpg)
 
 
+<br>
+<br>
 
 
 ## Usage
@@ -86,6 +98,62 @@ will be rendered to
 
 not so useful though.
 
+
+### background image
+
+```html
+<div  cache-src="http://farm4.static.flickr.com/3131/2877192571_3eb8bcf431.jpg"
+src-is="background" >
+<!-- stuff -->
+</div>
+```
+
+#### custom background style
+
+```html
+<div  cache-src="http://farm4.static.flickr.com/3131/2877192571_3eb8bcf431.jpg"
+src-is="background"
+background-style="no-repeat center"
+background-loading-style="url('path/to/your/loading/image.gif') no-repeat center"
+>
+<!-- stuff -->
+</div>
+```
+- `background-style` will be used as
+
+```html
+<div style="background:url('image/url') {{backgroundStyle}}">
+<!-- stuff -->
+</div>
+```
+
+- Default `background-loading-style` is `url('lib/ionic-cache-src/img/loader.gif') no-repeat center`
+
+
+### inline progress circle
+
+By default the progress circle is a block div, here is source code.
+
+```js
+function makeProgressCircle($scope, $compile) {
+    return angular.element($compile('<div style="{{circleContainerStyle}}"><div round-progress  max="max"  current="progress"  color="{{color}}" bgcolor="{{bgcolor}}"  radius="{{radius}}"  stroke="{{stroke}}"  rounded="rounded" clockwise="clockwise" iterations="{{iterations}}"  animation="{{animation}}"></div></div>')($scope));
+};
+```
+
+So you could change its style using `circleContainerStyle`
+
+```html
+<div class="list">
+    <a class="item item-avatar" href="#">
+        <img cache-src="http://x1.zhuti.com/down/2012/12/13-win7/llx-1.jpg"
+            circle-container-style="display:inline-block;position:absolute;left:30px;"/>
+        <h2>inline progress circle</h2>
+        <p>Test Progress Circle as inline block</p>
+    </a>
+</div>
+```
+
+
 ### callback
 
 ```html
@@ -94,21 +162,18 @@ not so useful though.
 
 ```js
 function onError(err){}
+function onStart(originUrl){}
 function onFinish(naiveUrl){}
 function onProgress(number){}
 ```
 
+Note that they will only be called if the image needs to be downloaded.
 
 ### inbroswer
 
-It will works in browser
+It will works in browser with a mock download process.
 
-```js
-if(!window.cordova){
-   //skip the checking
-   // and use $interval to mock a progress circle download
-}
-```
+
 
 ### for local file path
 
@@ -117,58 +182,7 @@ if(!window.cordova){
 So it works for local file path, or base64 etc...
 
 
-### service
-
-```js
-module.controller(function(cacheSrcService){
-    cacheSrcService.set(url, localUrl);
-    var localUrl = cacheSrcService.get(url); // get localpath of url if exists
-    cacheSrcService.reset(); // remove all localcache (from localstorage)
-    
-})
-
-```
-
-### config
-
-```js
-module.config(function($cacheSrcProvider){
-    $cacheSrcProvider
-              .set('key',value)
-              .set({key:value}); // set option
-
-})
-
-```
-Key, Value for options like
-
-- `srcIs`
-- `onError` etc...
-- `showProgressCircleInBrowser` whether show progress circle in browser
-- `showProgressCircleInDevice` whether show progress circle in device
-- `interval` browser mock progress circle period, by default 200.
--  options for progress circle  [angular-svg-round-progressbar](https://github.com/crisbeto/angular-svg-round-progressbar)
-
-
-
-
-
-
-## Attention
-
-
-### cordova_plugins.js
-
-Because of https://github.com/driftyco/ionic-plugin-keyboard/issues/82 , the `ionicPlatform.ready` may fail from exception. If you encounter this problem, Add 
-
-```html
-<script src="cordova_plugins.js"></script>
-```
-
-solve it.
-
-
-### $localstorage.cache_src
+### Service
 
 This plugin store cache info as  `$localstorage.cache_src = {RemoteUrl:LocalUrl}`, and there is a factory defined:
 
@@ -187,6 +201,56 @@ This plugin store cache info as  `$localstorage.cache_src = {RemoteUrl:LocalUrl}
     });
 ```
 which you can use to access the cached file
+
+
+
+### config
+
+```js
+module.config(function($cacheSrcProvider){
+    $cacheSrcProvider
+              .set('key',value)
+              .set({key:value}); // set option
+
+})
+
+```
+Key, Value for options like
+
+- `srcIs` 
+- `onError` for global use etc...
+- `showProgressCircleInBrowser` whether show progress circle in browser
+- `showProgressCircleInDevice` whether show progress circle in device
+- `interval` browser mock progress circle period, by default 200.
+-  options for progress circle  [angular-svg-round-progressbar](https://github.com/crisbeto/angular-svg-round-progressbar)
+
+- `backgroundStyle` and `backgroundLoadingStyle`
+- `circleContainerStyle`
+
+
+Note that the in-tag config has the higher priority than  `$cacheSrcProvider`
+
+
+<br>
+<br>
+<br>
+
+
+## Attention
+
+
+### cordova_plugins.js
+
+Because of https://github.com/driftyco/ionic-plugin-keyboard/issues/82 , the `ionicPlatform.ready` may fail from exception. If you encounter this problem, Add 
+
+```html
+<script src="cordova_plugins.js"></script>
+```
+
+solve it.
+
+
+
 
 
 #### livereload

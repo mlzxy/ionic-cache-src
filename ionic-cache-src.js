@@ -8,6 +8,12 @@
     };
     
 
+
+    function extend(dst,src){
+        for(var k in src)
+            dst[k] = dst[k] || src[k];
+    }
+    
     // For the Default Progress Circle
     //****************************************************************************************************//
     var default_circle_style = {
@@ -38,9 +44,7 @@
         if (scope.srcIs == 'background') {
             element[0].style.background = scope.backgroundLoadingStyle;
         } else {
-            for (var k in default_circle_style) {
-                scope[k] = scope[k] || default_circle_style[k];
-            }
+            extend(scope, default_circle_style);
             var progress_circle;
 
             function addCircle() {
@@ -163,9 +167,15 @@
                         }
                     };
 
-                    angular.extend(scope, $cacheSrc);
-                    angular.extend(scope, attrs);
-
+                    
+                    extend(scope, $cacheSrc);
+                    for(var k in attrs){
+                        if(!angular.isFunction(scope[k])){
+                            scope[k] = attrs[k];
+                        }
+                    }
+                    
+                    
                     function ensureFunction(x, y) {
                         return typeof x == 'function' ? x : y;
                     };
@@ -238,7 +248,7 @@
                                                         }, scope.onError, function(progress) {
                                                             uiData.progress = (progress.loaded / progress.total) * 100;
                                                             scope.uiOnProgress(scope, element, $compile, uiData);
-                                                            scope.onProgress(scope.progress);
+                                                            scope.onProgress(uiData.progress);
                                                         });
                                                 });
                                         }
