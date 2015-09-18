@@ -1,6 +1,13 @@
 # NOTICE
 
-- Several bugs fixed in 0.4.2, consider to update.
+- Enhancements in 0.5.0
+  - support background image
+  - could use your own progress indicator instead of the builtin progress circle
+
+But I haven't update the readme, will do it soom.
+
+
+
 - Demo and Playground: https://github.com/BenBBear/ionic-cache-src-demo
 
 
@@ -16,6 +23,7 @@ and it will take the rest work for you.
 
 ![](./img/cache.gif)
 
+![](./img/ionic-cache-src.gif)
 
 
 ## Install
