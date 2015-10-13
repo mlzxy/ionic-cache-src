@@ -1,17 +1,17 @@
 (function() {
 
 
-    
 
 
-    function extend(dst,src){
-        for(var k in src)
+    function extend(dst, src) {
+        for (var k in src)
             dst[k] = dst[k] || src[k];
     }
+
     function ensureFunction(x, y) {
         return typeof x == 'function' ? x : y;
     };
-    
+
     // For the Default Progress Circle
     //****************************************************************************************************//
     var default_circle_style = {
@@ -83,14 +83,15 @@
     };
     //****************************************************************************************************//
 
-    
+
     var default_config = {
         interval: 200,
-        backgroundStyle:'',
-        backgroundLoadingStyle:"url('lib/ionic-cache-src/img/loader.gif') no-repeat center",
-        uiOnStart:uiOnStart,
-        uiOnFinish:uiOnFinish,
-        uiOnProgress:uiOnProgress
+        backgroundStyle: '',
+        backgroundLoadingStyle: "url('lib/ionic-cache-src/img/loader.gif') no-repeat center",
+        uiOnStart: uiOnStart,
+        uiOnFinish: uiOnFinish,
+        uiOnProgress: uiOnProgress,
+        expire: Infinity
     };
 
     angular
@@ -174,14 +175,16 @@
                         }
                     };
 
-                    
-                    extend(scope, $cacheSrc);
-                    for(var k in attrs){
-                        if(!angular.isFunction(scope[k])){
+
+                    extend(scope, $cacheSrc);                    
+                    for (var k in attrs) {
+                        if (!angular.isFunction(scope[k])) {
                             scope[k] = attrs[k];
                         }
-                    }                    
-                   
+                    }
+                    
+                    scope.expire = parseInt(scope.expire) || $cacheSrc.expire;
+
                     scope.onProgress = ensureFunction(scope.onProgress, angular.noop);
                     scope.onFinish = ensureFunction(scope.onFinish, angular.noop);
                     scope.onError = ensureFunction(scope.onError, angular.noop);
@@ -191,14 +194,19 @@
                     scope.uiOnStart = ensureFunction(scope.uiOnStart, angular.noop);
 
 
-                    function addSrc(result) {
+                    function addSrcWithoutFinish(result) {
                         if (scope.srcIs == 'background') {
                             element[0].style.background = "url('" + result + "') " + scope.backgroundStyle;
                         } else {
                             element[0][scope.srcIs || 'src'] = result;
                         }
+                    }
+
+                    function addSrc(result) {
+                        addSrcWithoutFinish(result);
                         scope.onFinish(result);
                     };
+
 
 
                     if ($window.cordova) {
@@ -213,53 +221,83 @@
                         };
 
                         var cache = $localStorage.cache_src = $localStorage.cache_src || {};
+                        var create_time = $localStorage.cache_src_create_time = $localStorage.cache_src_create_time || {};
 
-                        attrs.$observe('cacheSrc',
-                            function() {
-                                if (attrs.cacheSrc) {
-                                    if (needDownload(attrs.cacheSrc)) {
-                                        //if cached
-                                        if (cache[attrs.cacheSrc]) {
-                                            $ionicPlatform
-                                                .ready()
-                                                .then(function() {
-                                                    addSrc(getCacheDir() + cache[attrs.cacheSrc]);
-                                                });
-                                        } else {
-                                            // not cache
-                                            var uiData = {};
-                                            scope.onStart(attrs.cacheSrc);
-                                            scope.uiOnStart(scope, element, $compile, uiData);
-                                            $ionicPlatform
-                                                .ready()
-                                                .then(function() {
-                                                    var ext = '.' + attrs.cacheSrc.split('.').pop();
-                                                    var fileName = id() + ext;
-                                                    $cordovaFileTransfer
-                                                        .download(attrs.cacheSrc, getCacheDir() + fileName, {}, true)
-                                                        .then(function() {
-                                                            cache[attrs.cacheSrc] = fileName;
-                                                            scope.uiOnFinish(scope, element, $compile, uiData);
-                                                            addSrc(getCacheDir() + fileName);
-                                                        }, scope.onError, function(progress) {
-                                                            uiData.progress = (progress.loaded / progress.total) * 100;
-                                                            scope.uiOnProgress(scope, element, $compile, uiData);
-                                                            scope.onProgress(uiData.progress);
-                                                        });
-                                                });
-                                        }
-                                    } else {
-                                        addSrc(attrs.cacheSrc);
+                        function fetchRemoteWithoutLoading(){
+                            var ext = '.' + attrs.cacheSrc.split('.').pop();
+                            var fileName = id() + ext;
+                            $cordovaFileTransfer
+                                .download(attrs.cacheSrc, getCacheDir() + fileName, {}, true)
+                                .then(function() {
+                                    cache[attrs.cacheSrc] = fileName;
+                                    if (scope.expire !== Infinity) {
+                                        create_time[attrs.cacheSrc] = Date.now();
                                     }
-                                }
+                                    addSrc(getCacheDir() + fileName);
+                                }, scope.onError, angular.noop);
+                        }
+                        
+                        function fetchRemote() {
+                            var uiData = {};
+                            scope.onStart(attrs.cacheSrc);
+                            scope.uiOnStart(scope, element, $compile, uiData);
+
+                            var ext = '.' + attrs.cacheSrc.split('.').pop();
+                            var fileName = id() + ext;
+                            $cordovaFileTransfer
+                                .download(attrs.cacheSrc, getCacheDir() + fileName, {}, true)
+                                .then(function() {
+                                    cache[attrs.cacheSrc] = fileName;
+                                    // debugger;
+                                    if (scope.expire !== Infinity) {
+                                        create_time[attrs.cacheSrc] = Date.now();
+                                    }
+                                    scope.uiOnFinish(scope, element, $compile, uiData);
+                                    addSrc(getCacheDir() + fileName);
+                                }, scope.onError, function(progress) {
+                                    uiData.progress = (progress.loaded / progress.total) * 100;
+                                    scope.uiOnProgress(scope, element, $compile, uiData);
+                                    scope.onProgress(uiData.progress);
+                                });
+
+                        }
+
+                        function fetchCache() {
+                            addSrc(getCacheDir() + cache[attrs.cacheSrc]);
+                        }
+                        $ionicPlatform
+                            .ready()
+                            .then(function() {
+                                attrs.$observe('cacheSrc',
+                                               function() {
+                                                   // debugger;
+                                        if (attrs.cacheSrc) {
+                                            if (needDownload(attrs.cacheSrc)) {
+                                                if (cache[attrs.cacheSrc]) {
+                                                    var now = Date.now();
+                                                    var create = create_time[attrs.cacheSrc] || Infinity;
+                                                    if (now - create < scope.expire * 1000) {
+                                                        fetchCache();
+                                                    } else {
+                                                        // alert('Cache expired');
+                                                        addSrcWithoutFinish(getCacheDir() + cache[attrs.cacheSrc]);
+                                                        fetchRemoteWithoutLoading();
+                                                    }
+                                                } else {
+                                                    fetchRemote();
+                                                }
+                                            } else {
+                                                addSrc(attrs.cacheSrc);
+                                            }
+                                        }
+                                    });
                             });
                     } else {
                         // in browser                        
-
                         attrs.$observe('cacheSrc', function() {
                             if (attrs.cacheSrc) {
                                 if (needDownload(attrs.cacheSrc)) {
-                                    
+
                                     var uiData = {};
                                     scope.onStart(attrs.cacheSrc);
                                     scope.uiOnStart(scope, element, $compile, uiData);
