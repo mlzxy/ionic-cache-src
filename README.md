@@ -1,7 +1,7 @@
 # NOTICE
 
-- I am a little bit rushed with writing 0.5.0, fix several bugs in 0.5.3
-
+- Enhancements in 0.6.0
+  - support expire
 
 - Enhancements in 0.5.0
   - support background image
@@ -110,6 +110,17 @@ src-is="background" >
 <!-- stuff -->
 </div>
 ```
+
+### Expire
+
+```html
+<img alt="" cache-src="http://a1.att.hudong.com/03/23/01300000332400125809239727476.jpg" expire="{{60}}"/>
+```
+Set expiration time to 60 seconds. At the next page load and directive linking, this cache will be renewed if 60s passed. But there wouldn't be progress circle, the image will be replaced after the newly downloaded file is ready.
+
+
+The expiration time is `Infinity` by default.
+
 
 #### Custom background style
 
@@ -227,6 +238,7 @@ Key, Value for options like
 
 - `backgroundStyle` and `backgroundLoadingStyle`
 - `circleContainerStyle`
+- `expire`
 - Anything you like, if you use custom progress indicator.
 
 Note that the in-tag config has the higher priority than  `$cacheSrcProvider`
@@ -349,3 +361,18 @@ solve it.
 > When using live reload, you’re actually running the assets off the computer and not the device
 
 You will get an error: `Not allowed to load local resource`, but it will only occur when livereloading.
+
+
+
+#### iOS 9 NSAppTransportSecurity
+
+Because iOS 9 forbids arbitrary http request, you may add
+
+```xml
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSAllowsArbitraryLoads</key><true/>
+</dict>
+```
+
+to you `.plist` file. Details in this gist: https://gist.github.com/mlynch/284699d676fe9ed0abfa
