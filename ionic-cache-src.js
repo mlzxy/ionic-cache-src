@@ -216,6 +216,8 @@
                                     return $window.cordova.file.documentsDirectory;
                                 case 'Android':
                                     return $window.cordova.file.dataDirectory;
+                                case 'windows':		
+                                    return $window.cordova.file.dataDirectory;
                             }
                             return '';
                         };
