@@ -293,7 +293,15 @@ Because of https://github.com/driftyco/ionic-plugin-keyboard/issues/82 , the `io
 solve it.
 
 
+#### android:cordova-plugin-file
 
+For android, you may need to add this 
+
+```xml
+<preference name="AndroidPersistentFileLocation" value="Internal" />
+```
+
+to your config.xml, as mentioned in [#10](https://github.com/BenBBear/ionic-cache-src/issues/10).  Otherwise the image won't be loaded, and no error `console.log`.
 
 
 #### livereload
