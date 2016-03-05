@@ -1,8 +1,14 @@
 # NOTICE
 
+in the 0.7.0
 
-
-- Demo and Playground: https://github.com/BenBBear/ionic-cache-src-demo
+- Now support Video and Audio Tag
+- Fix Bugs from several issues
+- Add more examples
+- Demo and Example: https://github.com/BenBBear/ionic-cache-src-demo
+  - Ng-repeat
+  - Collection Repeat 
+  - Video
 
 
 # ionic-cache-src
