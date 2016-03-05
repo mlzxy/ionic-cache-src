@@ -1,13 +1,7 @@
 # NOTICE
 
-- Enhancements in 0.6.0
-  - support expire
 
-- Enhancements in 0.5.0
-  - support background image
-  - could use your own progress indicator instead of the builtin progress circle
-  - the built-in progress circle could be inline-block
-  
+
 - Demo and Playground: https://github.com/BenBBear/ionic-cache-src-demo
 
 
@@ -33,6 +27,10 @@ and it will take the rest work for you.
 ### complex
 
 ![](./img/ionic-cache-src.gif)
+
+
+![](./img/demo.gif)
+
 
 
 ## Install
@@ -110,6 +108,17 @@ src-is="background" >
 <!-- stuff -->
 </div>
 ```
+
+
+### Video
+
+```html
+<video id="video" width="400"  controls  cache-src="http://vjs.zencdn.net/v/oceans.png" src-is="poster">
+    <source cache-src="http://vjs.zencdn.net/v/oceans.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+</video>
+```
+
 
 ### Expire
 
@@ -198,21 +207,12 @@ So it works for local file path, or base64 etc...
 
 ### Service
 
-This plugin store cache info as  `$localstorage.cache_src = {RemoteUrl:LocalUrl}`, and there is a factory defined:
+This plugin store cache info as  `$localstorage.cache_src = {RemoteUrl:LocalUrl}`, and there is a factory you could used to access the cache:
 
 ```js
-    module.factory('cacheSrcStorage', function($localStorage) {
-        var c = {};
-        c._cache = $localStorage.cache_src;
-        c.get = function(url){
-            return c._cache[url] && (getCacheDir() + c._cache[url]);
-        };
-        c.set = function(url,localUrl){
-            c._cache[url] = localUrl;
-            return c;
-        };
-        return c;
-    });
+module.controller('Ctrl', function(cacheSrcStorage) {
+    cacheSrcStorage.get('url') // === the local cache path for 'url'
+});
 ```
 which you can use to access the cached file
 
@@ -256,69 +256,9 @@ Use callback
 uiOnStart, uiOnProgress, uiOnFinish
 ```
 
-Here is the default source of this three functions, which implements the progress circle. Take it as reference and write your own.
+You could take reference of the default source of this three functions, which implements the progress circle, and write your custom progress indicator.
 
-```js
-    var default_config = {
-        interval: 200,
-        backgroundStyle:'',
-        backgroundLoadingStyle:"url('lib/ionic-cache-src/img/loader.gif') no-repeat center",
-        uiOnStart:uiOnStart,
-        uiOnFinish:uiOnFinish,
-        uiOnProgress:uiOnProgress
-    };
 
-    function makeProgressCircle($scope, $compile) {
-        return angular.element($compile('<div style="{{circleContainerStyle}}"><div round-progress  max="max"  current="progress"  color="{{color}}" bgcolor="{{bgcolor}}"  radius="{{radius}}"  stroke="{{stroke}}"  rounded="rounded" clockwise="clockwise" iterations="{{iterations}}"  animation="{{animation}}"></div></div>')($scope));
-    };
-
-    var uiOnProgress = function(scope, element, $compile, uiData) {
-        scope.progress = uiData.progress;
-    };
-    var uiOnStart = function(scope, element, $compile, uiData) {
-        if (scope.srcIs == 'background') {
-            element[0].style.background = scope.backgroundLoadingStyle;
-        } else {
-            extend(scope, default_circle_style);
-            var progress_circle;
-
-            function addCircle() {
-                progress_circle = makeProgressCircle(scope, $compile);
-                uiData.display = element.css('display');
-                element.css('display', 'none');
-                element.after(progress_circle);
-            };
-
-            if (window.cordova) {
-                if (scope.showProgressCircleInDevice) {
-                    addCircle();
-                }
-            } else {
-                if (scope.showProgressCircleInBrowser) {
-                    addCircle();
-                }
-            }
-            uiData.progress_circle = progress_circle;
-        }
-    };
-    var uiOnFinish = function(scope, element, $compile, uiData) {
-        if (scope.srcIs != 'background') {
-            function rmCircle() {
-                element.css('display', uiData.display);
-                uiData.progress_circle.remove();
-            }
-            if (window.cordova) {
-                if (scope.showProgressCircleInDevice) {
-                    rmCircle();
-                }
-            } else {
-                if (scope.showProgressCircleInBrowser) {
-                    rmCircle();
-                }
-            }
-        }
-    };
-```
 
 To use your own uiOn* functions
 
