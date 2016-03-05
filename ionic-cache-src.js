@@ -287,8 +287,7 @@
 
                         
                         $ionicPlatform
-                            .ready()
-                            .then(function() {
+                            .ready(function() {
                                 scope.$watch('attrs.cacheSrc',
                                                function() {
                                                    // debugger;
