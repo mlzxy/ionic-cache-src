@@ -1,5 +1,13 @@
 # NOTICE
 
+in the 0.7.2
+
+- Add encode option for URI
+- Roll back `watch` to `observe`
+- Find `java.io.EOFException` issue for old android causing the fileTransfer failed, if so don't cache.
+
+
+
 in the 0.7.0
 
 - Now support Video and Audio Tag
@@ -135,6 +143,15 @@ Set expiration time to 60 seconds. At the next page load and directive linking, 
 
 
 The expiration time is `Infinity` by default.
+
+
+### EncodeURI
+
+```html
+    <img alt="" cache-src="http://a1.att.hudong.com/03/23/01300000332400125809239727476.jpg" encode-uri="false"/>
+```
+
+CordovaFileTransfer encodes URL by default, but some urls don't need. See this issue [#17](https://github.com/BenBBear/ionic-cache-src/issues/17)
 
 
 #### Custom background style
@@ -330,3 +347,7 @@ Because iOS 9 forbids arbitrary http request, you may add
 ```
 
 to you `.plist` file. Details in this gist: https://gist.github.com/mlynch/284699d676fe9ed0abfa
+
+
+
+

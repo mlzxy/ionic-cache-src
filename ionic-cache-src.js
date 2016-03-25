@@ -1,8 +1,4 @@
 (function() {
-
-
-
-
     function extend(dst, src) {
         for (var k in src)
             dst[k] = dst[k] || src[k];
@@ -12,6 +8,16 @@
         return typeof x == 'function' ? x : y;
     };
 
+
+    function getBase64Image(img) {
+        var canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        return canvas.toDataURL();
+    }
+    
     // For the Default Progress Circle
     //****************************************************************************************************//
     var default_circle_style = {
@@ -30,16 +36,17 @@
         showProgressCircleInDevice: true,
         circleContainerStyle: 'text-align:center'
     };
-    function getElement(element){
-        switch(element[0].nodeName){
-        case 'SOURCE':                        
-            return element.parent();
-            
-        default:
-            return element;
+
+    function getElement(element) {
+        switch (element[0].nodeName) {
+            case 'SOURCE':
+                return element.parent();
+
+            default:
+                return element;
         }
     }
-    
+
     function makeProgressCircle($scope, $compile) {
         return angular.element($compile('<div style="{{circleContainerStyle}}"><div round-progress  max="max"  current="progress"  color="{{color}}" bgcolor="{{bgcolor}}"  radius="{{radius}}"  stroke="{{stroke}}"  rounded="rounded" clockwise="clockwise" iterations="{{iterations}}"  animation="{{animation}}"></div></div>')($scope));
     };
@@ -51,12 +58,11 @@
         // debugger;
         var elm = getElement(element);
         if (scope.srcIs == 'background') {
-            elm.css('background',scope.backgroundLoadingStyle);            
-        }
-        else if(element[0].nodeName != 'VIDEO' && element[0].nodeName != 'AUDIO')
-        {
+            elm.css('background', scope.backgroundLoadingStyle);
+        } else if (element[0].nodeName != 'VIDEO' && element[0].nodeName != 'AUDIO') {
             extend(scope, default_circle_style);
-            var progress_circle;            
+            var progress_circle;
+
             function addCircle() {
                 progress_circle = makeProgressCircle(scope, $compile);
                 uiData.display = elm.css('display');
@@ -77,8 +83,9 @@
         }
     };
     var uiOnFinish = function(scope, element, $compile, uiData) {
-        if (scope.srcIs != 'background' && (element[0].nodeName != 'VIDEO' && element[0].nodeName != 'AUDIO'))  {
+        if (scope.srcIs != 'background' && (element[0].nodeName != 'VIDEO' && element[0].nodeName != 'AUDIO')) {
             var elm = getElement(element);
+
             function rmCircle() {
                 elm.css('display', uiData.display);
                 uiData.progress_circle.remove();
@@ -112,12 +119,13 @@
         }
         return false;
     };
+
     function needDownload(path) {
         if (startsWith(path, [
-            'http://',
-            'https://',
-            'ftp://'
-        ])) {
+                'http://',
+                'https://',
+                'ftp://'
+            ])) {
             return true;
         } else {
             return false;
@@ -132,9 +140,10 @@
         uiOnStart: uiOnStart,
         uiOnFinish: uiOnFinish,
         uiOnProgress: uiOnProgress,
+        encodeUri: true,
         expire: Infinity
     };
-    var getCacheDir = function(){};
+    var getCacheDir = function() {};
     angular
         .module('ionic-cache-src', [
             'ionic',
@@ -153,7 +162,6 @@
                 }
                 return this;
             };
-
             this.$get = function() {
                 return this.config;
             };
@@ -162,29 +170,29 @@
             var c = {};
             c._cache = $localStorage.cache_src || {};
             c.get = function(url) {
-                if(needDownload(url)){
+                if (needDownload(url)) {
                     var cache_url = c._cache[url] && (getCacheDir() + c._cache[url]);
-                    return cache_url || url;                        
+                    return cache_url || url;
                 }
-                return undefined;                
+                return undefined;
             };
             c.set = function(url, localUrl) {
                 c._cache[url] = localUrl;
                 return c;
             };
-            c.reset = function(url){
-                if(url != undefined)
+            c.reset = function(url) {
+                if (url != undefined)
                     delete $localStorage.cache_src[url];
                 else
-                    $localStorage.cache_src = {};                
+                    $localStorage.cache_src = {};
             };
-                        
+
             return c;
         })
-        .directive('cacheSrc', function($ionicPlatform, $window, $interval, $timeout, $compile, $cacheSrc, $cordovaFileTransfer, $localStorage) {
+        .directive('cacheSrc', function($ionicPlatform, $window, $interval, $timeout, $compile, $cacheSrc, $cordovaFileTransfer, $localStorage,$cordovaFile) {
             return {
                 restrict: 'A',
-                priority: 99, 
+                priority: 99,
                 scope: {
                     'onProgress': '=?',
                     'onFinish': '=?',
@@ -197,17 +205,22 @@
                 },
                 link: function(scope, element, attrs) {
 
-                    
+
                     // debugger;
-                    extend(scope, $cacheSrc);                    
+                    extend(scope, $cacheSrc);
                     for (var k in attrs) {
                         if (!angular.isFunction(scope[k])) {
                             scope[k] = attrs[k];
                         }
                     }
-                    
+
                     scope.expire = parseInt(scope.expire) || $cacheSrc.expire;
 
+                    if (scope.encodeUri === "false")
+                        scope.encodeUri = false;
+                    else
+                        scope.encodeUri = $cacheSrc.encodeUri;
+                    // console.log("encodeURI:"+scope.encodeUri);
                     scope.onProgress = ensureFunction(scope.onProgress, angular.noop);
                     scope.onFinish = ensureFunction(scope.onFinish, angular.noop);
                     scope.onError = ensureFunction(scope.onError, angular.noop);
@@ -215,57 +228,105 @@
                     scope.uiOnProgress = ensureFunction(scope.uiOnProgress, angular.noop); //use default ones
                     scope.uiOnFinish = ensureFunction(scope.uiOnFinish, angular.noop);
                     scope.uiOnStart = ensureFunction(scope.uiOnStart, angular.noop);
+
+
                     
-                    
+
                     function addSrcWithoutFinish(result) {
                         if (scope.srcIs == 'background') {
-                            getElement(element).css('background',"url('" + result + "') " + scope.backgroundStyle);
-                        } else {                            
-                            getElement(element).attr(scope.srcIs || 'src',result);                                                       
+                            getElement(element).css('background', "url('" + result + "') " + scope.backgroundStyle);
+                        } else {
+                            getElement(element).attr(scope.srcIs || 'src', result);
                         }
                     }
+
                     function addSrc(result) {
                         addSrcWithoutFinish(result);
                         scope.onFinish(result);
                     };
                     if ($window.cordova) {
-                        var getCacheDir = function () {
-                            switch (device.platform) {
-                                case 'iOS':
-                                    return $window.cordova.file.documentsDirectory;
-                                case 'Android':
-                                    return $window.cordova.file.dataDirectory;
-                                case 'windows':		
-                                    return $window.cordova.file.dataDirectory;
-                            }
+                        var getCacheDir = function() {
+                            if (window.device)
+                                if (window.cordova.file) {
+                                    switch (device.platform) {
+                                        case 'iOS':
+                                            return $window.cordova.file.documentsDirectory;
+                                        case 'Android':
+                                            return $window.cordova.file.dataDirectory;
+                                        case 'windows':
+                                            return $window.cordova.file.dataDirectory;
+                                    }
+                                } else
+                                    throw new Error("window.cordova.file is not defined! Maybe you should install cordova-plugin-file first!");
+                            else
+                                throw new Error("window.device is not defined! Maybe you should install cordova-plugin-device first!");
                             return '';
-                        };
+                        };                        
+                        
                         var cache = $localStorage.cache_src = $localStorage.cache_src || {};
                         var create_time = $localStorage.cache_src_create_time = $localStorage.cache_src_create_time || {};
-                        function fetchRemoteWithoutLoading(){
+                        function scopeOnError(fileName,uiData) {
+                            return function(E) {
+                                if (E.code == 3) {
+                                    console.log('Error Occurs: ' + E.exception + "\nCode:" + E.code + "\nSrc:" + E.source);
+                                    if(uiData)
+                                        scope.uiOnFinish(scope, element, $compile, uiData);
+                                    addSrcWithoutFinish(E.source);                                    
+                                    // var b64 = getBase64Image(getElement(element));
+                                    // if(b64.length > 200)
+                                    //     $cordovaFile
+                                    //     .writeFile(getCacheDir(), fileName, b64, true)
+                                    //     .then(function(){
+                                    //         cache[attrs.cacheSrc] = fileName;
+                                    //         if (scope.expire !== Infinity) {
+                                    //             create_time[attrs.cacheSrc] = Date.now();
+                                    //         }                                        
+                                    //         addSrc(getCacheDir() + fileName);
+                                    //     },scope.onError);                                                       
+                                } else {
+                                    scope.onError(E);
+                                }
+                            };
+                        }
+
+                        function fetchRemoteWithoutLoading() {
                             var ext = '.' + attrs.cacheSrc.split('.').pop();
                             var fileName = id() + ext;
                             $cordovaFileTransfer
-                                .download(attrs.cacheSrc, getCacheDir() + fileName, {}, true)
+                                .download(attrs.cacheSrc, getCacheDir() + fileName, {
+                                    encodeURI: scope.encodeUri,
+                                    chunkedMode: false,
+                                    headers: {
+                                        Connection: "close"
+                                    }
+                                }, true)
                                 .then(function() {
                                     cache[attrs.cacheSrc] = fileName;
                                     if (scope.expire !== Infinity) {
                                         create_time[attrs.cacheSrc] = Date.now();
                                     }
                                     addSrc(getCacheDir() + fileName);
-                                }, scope.onError, angular.noop);
-                        }                        
+                                }, scopeOnError(fileName), angular.noop);
+                        }
+
                         function fetchRemote() {
                             var uiData = {};
                             scope.onStart(attrs.cacheSrc);
                             // var elem = getElement(element);
                             scope.uiOnStart(scope, element, $compile, uiData);
-                            
-                            
+
+
                             var ext = '.' + attrs.cacheSrc.split('.').pop();
                             var fileName = id() + ext;
                             $cordovaFileTransfer
-                                .download(attrs.cacheSrc, getCacheDir() + fileName, {}, true)
+                                .download(attrs.cacheSrc, getCacheDir() + fileName, {
+                                    encodeURI: scope.encodeUri,
+                                    chunkedMode: false,
+                                    headers: {
+
+                                        Connection: "close"
+                                    }
+                                }, true)
                                 .then(function() {
                                     cache[attrs.cacheSrc] = fileName;
                                     if (scope.expire !== Infinity) {
@@ -273,55 +334,56 @@
                                     }
                                     scope.uiOnFinish(scope, element, $compile, uiData);
                                     addSrc(getCacheDir() + fileName);
-                                }, scope.onError, function(progress) {
+                                }, scopeOnError(fileName,uiData), function(progress) {
                                     uiData.progress = (progress.loaded / progress.total) * 100;
                                     scope.uiOnProgress(scope, element, $compile, uiData);
                                     scope.onProgress(uiData.progress);
                                 });
 
                         }
+
                         function fetchCache() {
                             addSrc(getCacheDir() + cache[attrs.cacheSrc]);
                         }
 
 
-                        
+
                         $ionicPlatform
                             .ready(function() {
-                                scope.$watch('attrs.cacheSrc',
-                                               function() {
-                                                   // debugger;
-                                                   if (attrs.cacheSrc) {
-                                                       if (needDownload(attrs.cacheSrc)) {
-                                                           if (cache[attrs.cacheSrc]) {
-                                                               var now = Date.now();
-                                                               var create = create_time[attrs.cacheSrc] || Infinity;
-                                                               if (now - create < scope.expire * 1000) {
-                                                                   fetchCache();
-                                                               } else {
-                                                                   // alert('Cache expired');
-                                                                   addSrcWithoutFinish(getCacheDir() + cache[attrs.cacheSrc]);
-                                                                   fetchRemoteWithoutLoading();
-                                                               }
-                                                           } else {
-                                                               fetchRemote();
-                                                           }
-                                                       } else {
-                                                           addSrc(attrs.cacheSrc);
-                                                       }
-                                                   }
-                                               });
+                                attrs.$observe('cacheSrc',
+                                    function() {
+                                        // debugger;
+                                        if (attrs.cacheSrc) {
+                                            if (needDownload(attrs.cacheSrc)) {
+                                                if (cache[attrs.cacheSrc]) {
+                                                    var now = Date.now();
+                                                    var create = create_time[attrs.cacheSrc] || Infinity;
+                                                    if (now - create < scope.expire * 1000) {
+                                                        fetchCache();
+                                                    } else {
+                                                        // alert('Cache expired');
+                                                        addSrcWithoutFinish(getCacheDir() + cache[attrs.cacheSrc]);
+                                                        fetchRemoteWithoutLoading();
+                                                    }
+                                                } else {
+                                                    fetchRemote();
+                                                }
+                                            } else {
+                                                addSrc(attrs.cacheSrc);
+                                            }
+                                        }
+                                    });
                             });
                     } else {
                         // in browser                        
-                        scope.$watch('attrs.cacheSrc', function() {
+                        attrs.$observe('cacheSrc', function() {
                             if (attrs.cacheSrc) {
                                 if (needDownload(attrs.cacheSrc)) {
                                     // var elem = getElement(element);
                                     var uiData = {};
                                     scope.onStart(attrs.cacheSrc);
                                     scope.uiOnStart(scope, element, $compile, uiData);
-                                    
+
                                     uiData.progress = scope.progress || 0;
                                     // debugger;
                                     var promise = $interval(function() {
