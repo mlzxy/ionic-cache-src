@@ -383,7 +383,7 @@
                                     var uiData = {};
                                     scope.onStart(attrs.cacheSrc);
                                     scope.uiOnStart(scope, element, $compile, uiData);
-
+                                    element[0].onerror = scope.onError;
                                     uiData.progress = scope.progress || 0;
                                     // debugger;
                                     var promise = $interval(function() {
