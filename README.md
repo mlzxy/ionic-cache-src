@@ -1,5 +1,7 @@
 # NOTICE
 
+I will try to spare my time to work on a ionic2 version in typescript. 
+
 in the 0.7.2
 
 - Add encode option for URI
