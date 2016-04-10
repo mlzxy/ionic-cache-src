@@ -434,14 +434,22 @@
                             scope.onStart(attrs.cacheSrc);
                             scope.uiOnStart(scope, element, $compile, uiData);
                             
-                            if (attrs.cacheSrc.includes('fbcdn') || attrs.cacheSrc.includes('facebook')) {
-                            	var ext = '.' + attrs.cacheSrc.split('ext=').pop();
-                            	var encoded = false;
-                            }
-                            else {
+                            // example code mod to allow for split+pop on complex URLs 
+                            
+//                             if (attrs.cacheSrc.includes('fbcdn') || attrs.cacheSrc.includes('facebook')) {
+//                             	var ext = '.' + attrs.cacheSrc.split('ext=').pop();
+//                             	var encoded = false;
+//                             }
+//                             else {
+//                             	var ext = '.' + attrs.cacheSrc.split('.').pop();
+//                             	var encoded = true;
+//                             }
+
+								// simple split+pop
+								
                             	var ext = '.' + attrs.cacheSrc.split('.').pop();
                             	var encoded = true;
-                            }
+
                             var fileName = id() + ext;
                  
                             $cordovaFileTransfer
