@@ -17,7 +17,7 @@
         ctx.drawImage(img, 0, 0);
         return canvas.toDataURL();
     }
-    
+
     // For the Default Progress Circle
     //****************************************************************************************************//
     var default_circle_style = {
@@ -168,10 +168,27 @@
         })
         .factory('cacheSrcStorage', function($localStorage) {
             var c = {};
+            c.getCacheDir = function() {
+                if (window.device)
+                    if (window.cordova.file) {
+                        switch (device.platform) {
+                            case 'iOS':
+                                return $window.cordova.file.documentsDirectory;
+                            case 'Android':
+                                return $window.cordova.file.dataDirectory;
+                            case 'windows':
+                                return $window.cordova.file.dataDirectory;
+                        }
+                    } else
+                        throw new Error("window.cordova.file is not defined! Maybe you should install cordova-plugin-file first!");
+                else
+                    throw new Error("window.device is not defined! Maybe you should install cordova-plugin-device first!");
+                return '';
+            };
             c._cache = $localStorage.cache_src || {};
             c.get = function(url) {
                 if (needDownload(url)) {
-                    var cache_url = c._cache[url] && (getCacheDir() + c._cache[url]);
+                    var cache_url = c._cache[url] && (c.getCacheDir() + c._cache[url]);
                     return cache_url || url;
                 }
                 return undefined;
@@ -198,7 +215,7 @@
                     'onFinish': '=?',
                     'onError': '=?',
                     'onStart': '=?',
-                    // 
+                    //
                     'uiOnStart': '=?',
                     'uiOnProgress': '=?',
                     'uiOnFinish': '=?'
@@ -230,7 +247,7 @@
                     scope.uiOnStart = ensureFunction(scope.uiOnStart, angular.noop);
 
 
-                    
+
 
                     function addSrcWithoutFinish(result) {
                         if (scope.srcIs == 'background') {
@@ -261,8 +278,8 @@
                             else
                                 throw new Error("window.device is not defined! Maybe you should install cordova-plugin-device first!");
                             return '';
-                        };                        
-                        
+                        };
+
                         var cache = $localStorage.cache_src = $localStorage.cache_src || {};
                         var create_time = $localStorage.cache_src_create_time = $localStorage.cache_src_create_time || {};
                         function scopeOnError(fileName,uiData) {
@@ -271,7 +288,7 @@
                                     console.log('Error Occurs: ' + E.exception + "\nCode:" + E.code + "\nSrc:" + E.source);
                                     if(uiData)
                                         scope.uiOnFinish(scope, element, $compile, uiData);
-                                    addSrcWithoutFinish(E.source);                                    
+                                    addSrcWithoutFinish(E.source);
                                     // var b64 = getBase64Image(getElement(element));
                                     // if(b64.length > 200)
                                     //     $cordovaFile
@@ -280,9 +297,9 @@
                                     //         cache[attrs.cacheSrc] = fileName;
                                     //         if (scope.expire !== Infinity) {
                                     //             create_time[attrs.cacheSrc] = Date.now();
-                                    //         }                                        
+                                    //         }
                                     //         addSrc(getCacheDir() + fileName);
-                                    //     },scope.onError);                                                       
+                                    //     },scope.onError);
                                 } else {
                                     scope.onError(E);
                                 }
@@ -375,7 +392,7 @@
                                     });
                             });
                     } else {
-                        // in browser                        
+                        // in browser
                         attrs.$observe('cacheSrc', function() {
                             if (attrs.cacheSrc) {
                                 if (needDownload(attrs.cacheSrc)) {
